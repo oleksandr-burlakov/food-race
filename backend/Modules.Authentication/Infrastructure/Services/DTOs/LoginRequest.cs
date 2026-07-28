@@ -1,7 +1,8 @@
 using FluentValidation;
-using Modules.Authentication.Infrastructure.Services.DTOs;
 
-namespace Modules.Authentication.Infrastructure.Services.Validations;
+namespace Modules.Authentication.Infrastructure.Services.DTOs;
+
+public record LoginRequest(string Login, string Password);
 
 public class LoginRequestValidator : AbstractValidator<LoginRequest>
 {

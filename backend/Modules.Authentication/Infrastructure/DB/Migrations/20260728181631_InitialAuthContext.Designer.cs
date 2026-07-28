@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modules.Authentication.Infrastructure.DB;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modules.Authentication.Infrastructure.DB.Migrations
 {
     [DbContext(typeof(AppIdentityDbContext))]
-    partial class AppIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728181631_InitialAuthContext")]
+    partial class InitialAuthContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -241,10 +244,11 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                         .HasColumnName("phone_number_confirmed");
 
                     b.Property<string>("RefreshToken")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("refresh_token");
 
-                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                    b.Property<DateTime>("RefreshTokenExpiryTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("refresh_token_expiry_time");
 
