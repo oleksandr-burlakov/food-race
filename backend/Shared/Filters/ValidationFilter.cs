@@ -2,9 +2,8 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Modules.Authentication.Infrastructure;
+namespace Shared.Filters;
 
-// TODO: move to shared library
 public class ValidationFilter<T> : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)

@@ -1,19 +1,40 @@
 using API.IoC;
 using Carter;
 using Modules.Authentication.Infrastructure.IoC;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services
-    .AddUnleashServices(builder.Configuration)
-    .AddAuthenticationServices(builder.Configuration)
-    .AddOpenApi();
+try
+{
+    Log.Information("Starting web application...");
 
-var app = builder.Build();
+    var builder = WebApplication.CreateBuilder(args);
 
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+    await builder.Services.AddUnleashServices(builder.Configuration);
+    builder.Services
+        .AddAuthenticationServices(builder.Configuration)
+        .AddOpenApi();
 
-app.UseHttpsRedirection();
+    var app = builder.Build();
 
-app.MapCarter();
-app.Run();
+    if (app.Environment.IsDevelopment()) app.MapOpenApi();
+
+    app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapCarter();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

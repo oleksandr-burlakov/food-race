@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modules.Authentication.Infrastructure.DB.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialIdentity : Migration
+    public partial class InitialAuthContext : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 schema: "identity",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "text", nullable: false),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     normalized_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     concurrency_stamp = table.Column<string>(type: "text", nullable: true)
@@ -35,7 +35,9 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 schema: "identity",
                 columns: table => new
                 {
-                    id = table.Column<string>(type: "text", nullable: false),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    refresh_token = table.Column<string>(type: "text", nullable: false),
+                    refresh_token_expiry_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     normalized_user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -63,7 +65,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    role_id = table.Column<string>(type: "text", nullable: false),
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false),
                     claim_type = table.Column<string>(type: "text", nullable: true),
                     claim_value = table.Column<string>(type: "text", nullable: true)
                 },
@@ -71,7 +73,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 {
                     table.PrimaryKey("pk_role_claims", x => x.id);
                     table.ForeignKey(
-                        name: "fk_role_claims_roles_role_id",
+                        name: "fk_role_claims_asp_net_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "identity",
                         principalTable: "roles",
@@ -86,7 +88,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    user_id = table.Column<string>(type: "text", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     claim_type = table.Column<string>(type: "text", nullable: true),
                     claim_value = table.Column<string>(type: "text", nullable: true)
                 },
@@ -94,7 +96,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 {
                     table.PrimaryKey("pk_user_claims", x => x.id);
                     table.ForeignKey(
-                        name: "fk_user_claims_users_user_id",
+                        name: "fk_user_claims_asp_net_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
                         principalTable: "users",
@@ -110,13 +112,13 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                     login_provider = table.Column<string>(type: "text", nullable: false),
                     provider_key = table.Column<string>(type: "text", nullable: false),
                     provider_display_name = table.Column<string>(type: "text", nullable: true),
-                    user_id = table.Column<string>(type: "text", nullable: false)
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_user_logins", x => new { x.login_provider, x.provider_key });
                     table.ForeignKey(
-                        name: "fk_user_logins_users_user_id",
+                        name: "fk_user_logins_asp_net_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
                         principalTable: "users",
@@ -129,21 +131,21 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 schema: "identity",
                 columns: table => new
                 {
-                    user_id = table.Column<string>(type: "text", nullable: false),
-                    role_id = table.Column<string>(type: "text", nullable: false)
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_user_roles", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "fk_user_roles_roles_role_id",
+                        name: "fk_user_roles_asp_net_roles_role_id",
                         column: x => x.role_id,
                         principalSchema: "identity",
                         principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_user_roles_users_user_id",
+                        name: "fk_user_roles_asp_net_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
                         principalTable: "users",
@@ -156,7 +158,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 schema: "identity",
                 columns: table => new
                 {
-                    user_id = table.Column<string>(type: "text", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     login_provider = table.Column<string>(type: "text", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
                     value = table.Column<string>(type: "text", nullable: true)
@@ -165,7 +167,7 @@ namespace Modules.Authentication.Infrastructure.DB.Migrations
                 {
                     table.PrimaryKey("pk_user_tokens", x => new { x.user_id, x.login_provider, x.name });
                     table.ForeignKey(
-                        name: "fk_user_tokens_users_user_id",
+                        name: "fk_user_tokens_asp_net_users_user_id",
                         column: x => x.user_id,
                         principalSchema: "identity",
                         principalTable: "users",

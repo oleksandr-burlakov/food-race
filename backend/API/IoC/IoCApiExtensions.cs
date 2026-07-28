@@ -4,7 +4,8 @@ namespace API.IoC;
 
 public static class IoCApiExtensions
 {
-    public static IServiceCollection AddUnleashServices(this IServiceCollection services, IConfiguration configuration)
+    public static async Task<IServiceCollection> AddUnleashServices(this IServiceCollection services,
+        IConfiguration configuration)
     {
         var customSettings = new UnleashSettings();
 
@@ -16,14 +17,17 @@ public static class IoCApiExtensions
             var settings = new Unleash.UnleashSettings
             {
                 AppName = customSettings.AppName,
-                UnleashApi = new Uri(customSettings.ApiUrl),
+                UnleashApi = new Uri("http://127.0.0.1:4242/api/"),
                 CustomHttpHeaders = new Dictionary<string, string>
                 {
                     { "Authorization", customSettings.AuthorizationToken }
-                }
+                },
+                FetchTogglesInterval = TimeSpan.FromSeconds(2),
+                SendMetricsInterval = TimeSpan.FromSeconds(2)
             };
 
             var unleash = new DefaultUnleash(settings);
+
             services.AddSingleton<IUnleash>(unleash);
         }
         else

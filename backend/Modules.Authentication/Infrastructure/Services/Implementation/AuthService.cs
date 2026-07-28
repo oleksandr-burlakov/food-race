@@ -4,11 +4,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Modules.Authentication.Domain;
+using Modules.Authentication.Infrastructure.IoC;
 using Modules.Authentication.Infrastructure.Services.DTOs;
-using Unleash;
 
 namespace Modules.Authentication.Infrastructure.Services.Implementation;
 
@@ -20,18 +20,11 @@ public interface IAuthService
 }
 
 public class AuthService(
-    IConfiguration configuration,
     UserManager<User> userManager,
-    IUnleash unleash) : IAuthService
+    IOptions<JwtOptions> jwtOptions) : IAuthService
 {
     public async Task<IResult> RegisterAsync(RegisterRequest request)
     {
-        if (!unleash.IsEnabled(configuration["Features:AuthModule"]))
-            return Results.BadRequest(new
-            {
-                Message = "This feature is disabled."
-            });
-
         var userExists = await userManager.FindByEmailAsync(request.Email);
         if (userExists != null) return Results.BadRequest(new { Error = "User with same Email already  exists." });
 
@@ -47,6 +40,7 @@ public class AuthService(
 
         return Results.Ok(new { Message = "User successfully registered" });
     }
+
 
     public async Task<IResult> LoginAsync(LoginRequest request)
     {
@@ -89,16 +83,16 @@ public class AuthService(
 
         foreach (var userRole in userRoles) authClaims.Add(new Claim(ClaimTypes.Role, userRole));
 
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]!));
-        var tokenValidityInMinutes = int.Parse(configuration["JWT:TokenValidityInMinutes"] ?? "60");
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.Secret));
+        var tokenValidityInMinutes = jwtOptions.Value.TokenValidityInMinutes;
 
         var token = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(authClaims),
             Expires = DateTime.UtcNow.AddMinutes(tokenValidityInMinutes),
             SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256Signature),
-            Issuer = configuration["JWT:ValidIssuer"],
-            Audience = configuration["JWT:ValidAudience"]
+            Issuer = jwtOptions.Value.ValidIssuer,
+            Audience = jwtOptions.Value.ValidAudience
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -130,7 +124,7 @@ public class AuthService(
             ValidateAudience = false,
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Value.Secret)),
             ValidateLifetime = false
         };
 

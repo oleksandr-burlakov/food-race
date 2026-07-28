@@ -2,10 +2,11 @@ using System.Globalization;
 using EFCore.NamingConventions.Internal;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Modules.Authentication.Domain;
 
 namespace Modules.Authentication.Infrastructure.DB;
 
-public class AppIdentityDbContext : IdentityDbContext
+public class AppIdentityDbContext : IdentityDbContext<User, Role, Guid>
 {
     public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options)
         : base(options)
