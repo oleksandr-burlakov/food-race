@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Routing;
 using Modules.Authentication.Infrastructure.Services.DTOs;
 using Modules.Authentication.Infrastructure.Services.Implementation;
 using Shared.Extension;
-using Shared.Filters;
 
 namespace Modules.Authentication.Api;
 
@@ -19,15 +18,15 @@ public class AuthModule : ICarterModule
         group.MapPost("/register",
                 async (RegisterRequest request, IAuthService authService) =>
                     await authService.RegisterAsync(request))
-            .AddEndpointFilter<ValidationFilter<RegisterRequest>>();
+            .Validate<RegisterRequest>();
         group.MapPost("/login", async (LoginRequest request,
                     IAuthService service) =>
-                await service.LoginAsync(request))
-            .AddEndpointFilter<ValidationFilter<LoginRequest>>();
+                (await service.LoginAsync(request)).ToHttpResponse())
+            .Validate<LoginRequest>();
 
         group.MapPost("/refresh", async (RefreshTokenRequest request, IAuthService service) =>
-                await service.RefreshTokenAsync(request))
-            .AddEndpointFilter<ValidationFilter<RefreshTokenRequest>>();
+                (await service.RefreshTokenAsync(request)).ToHttpResponse())
+            .Validate<RefreshTokenRequest>();
 
         // TODO: implement in next version
         group.MapPost("/logout", () => Results.Ok());

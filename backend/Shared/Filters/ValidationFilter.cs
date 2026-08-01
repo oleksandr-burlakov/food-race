@@ -15,8 +15,7 @@ public class ValidationFilter<T> : IEndpointFilter
             if (validator is not null)
             {
                 var validationResult = await validator.ValidateAsync((T)argument);
-                if (!validationResult.IsValid)
-                    return Results.ValidationProblem(validationResult.ToDictionary());
+                if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
             }
         }
 
