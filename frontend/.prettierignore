@@ -1,3 +1,14 @@
-dist/
-node_modules/
+dist
+coverage
+.angular
+node_modules
+
 package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+public
+src/assets
+**/*.min.js
+**/generated
+**/*.generated.ts

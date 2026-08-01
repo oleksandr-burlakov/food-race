@@ -2,6 +2,7 @@ using API.IoC;
 using Carter;
 using Modules.Authentication.Infrastructure.IoC;
 using Serilog;
+using Shared.ExceptionHandlers;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -12,6 +13,9 @@ try
     Log.Information("Starting web application...");
 
     var builder = WebApplication.CreateBuilder(args);
+
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
 
     await builder.Services.AddUnleashServices(builder.Configuration);
     builder.Services
@@ -27,6 +31,8 @@ try
     app.UseAuthorization();
 
     app.MapCarter();
+
+    app.UseExceptionHandler();
 
     app.Run();
 }

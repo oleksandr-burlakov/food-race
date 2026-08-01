@@ -31,8 +31,4 @@
         <PackageReference Include="Unleash.Client" Version="6.2.1"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="ResultPattern\"/>
-    </ItemGroup>
-
 </Project>

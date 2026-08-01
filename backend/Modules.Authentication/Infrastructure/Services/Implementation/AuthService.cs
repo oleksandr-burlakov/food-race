@@ -7,15 +7,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Modules.Authentication.Domain;
+using Modules.Authentication.Domain.Errors;
 using Modules.Authentication.Infrastructure.IoC;
 using Modules.Authentication.Infrastructure.Services.DTOs;
+using Shared.Errors;
+using Shared.Results;
 
 namespace Modules.Authentication.Infrastructure.Services.Implementation;
 
 public interface IAuthService
 {
-    Task<IResult> LoginAsync(LoginRequest request);
-    Task<IResult> RefreshTokenAsync(RefreshTokenRequest request);
+    Task<Result<AuthResponse>> LoginAsync(LoginRequest request);
+    Task<Result<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request);
     Task<IResult> RegisterAsync(RegisterRequest request);
 }
 
@@ -42,32 +45,33 @@ public class AuthService(
     }
 
 
-    public async Task<IResult> LoginAsync(LoginRequest request)
+    public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request)
     {
         var user = await userManager.FindByNameAsync(request.Login) ??
                    await userManager.FindByEmailAsync(request.Login);
 
         if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
-            return Results.Unauthorized();
+            return CustomError.Unauthorized("Auth.User",
+                "Login or  password is incorrect"); // TODO: move to domain errors
 
         var authResponse = await GenerateAuthResponseAsync(user);
-        return Results.Ok(authResponse);
+        return authResponse;
     }
 
-    public async Task<IResult> RefreshTokenAsync(RefreshTokenRequest request)
+    public async Task<Result<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request)
     {
         var principal = GetPrincipalFromExpiredToken(request.AccessToken);
-        if (principal == null) return Results.BadRequest(new { Error = "Invalid Access Token." });
+        if (principal == null) return AuthErrors.InvalidAccessToken;
 
         var login = principal.FindFirstValue(ClaimTypes.Email) ?? principal.FindFirstValue(ClaimTypes.Name);
         var user = await userManager.FindByEmailAsync(login) ?? await userManager.FindByNameAsync(login);
 
         // TODO: add refresh token lifetime validation check
         if (user == null)
-            return Results.BadRequest(new { Error = "User not found or Refresh Token is invalid." });
+            return AuthErrors.UserNotFoundOrRefreshTokenInvalid;
 
         var newAuthResponse = await GenerateAuthResponseAsync(user);
-        return Results.Ok(newAuthResponse);
+        return newAuthResponse;
     }
 
     private async Task<AuthResponse> GenerateAuthResponseAsync(User user)
