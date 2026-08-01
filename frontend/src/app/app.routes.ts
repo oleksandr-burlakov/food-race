@@ -1,5 +1,5 @@
 import { type Routes } from '@angular/router';
-import { unleashGuard } from '../shared/guards/unleash.guard';
+import { unleashGuard } from './shared/guards/guards/unleash.guard';
 
 export const routes: Routes = [
   {

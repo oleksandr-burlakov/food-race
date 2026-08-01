@@ -5,10 +5,14 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { UnleashService } from '../shared/services/unleash.service';
+import { UnleashService } from './shared/services/unleash.service';
+import { registerLocaleData } from '@angular/common';
+import en from '@angular/common/locales/en';
+import { provideRouter } from '@angular/router';
+
+registerLocaleData(en);
 
 export function initializeUnleash() {
   const unleashService = inject(UnleashService);

@@ -1,6 +1,6 @@
 import { Injectable, signal, type OnDestroy } from '@angular/core';
 import { UnleashClient } from 'unleash-proxy-client';
-import { ENVIRONMENT } from '../../environment/environment';
+import { ENVIRONMENT } from '../../../environment/environment';
 
 @Injectable({
   providedIn: 'root',

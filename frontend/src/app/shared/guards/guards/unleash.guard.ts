@@ -1,6 +1,6 @@
 import { type CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { UnleashService } from '../services/unleash.service';
+import { UnleashService } from '../../services/unleash.service';
 
 export const unleashGuard = (flagName: string, fallbackUrl = '/'): CanActivateFn => {
   return () => {
